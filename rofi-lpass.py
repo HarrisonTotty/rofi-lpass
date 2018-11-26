@@ -52,22 +52,28 @@ try:
     )
 except Exception as e:
     rofi_message('Unable to get current LastPass login status - ' + str(e))
+    sys.stdout.write('ERROR')
     sys.exit(1)
 
 # Log in if needed
 if stat_ec != 0:
     try:
         (login_out, login_ec) = _run_process(
-            cmd = '{lpass} login --trust --color=never {user}'.format(
+            cmd = '{lpass} login --force --color=never {user}'.format(
                 lpass = lpass_path,
                 user = lpass_user
             )
         )
     except Exception as e:
         rofi_message('Unable to log-in to LastPass - ' + str(e))
+        sys.stdout.write('ERROR')
         sys.exit(1)
     if login_ec != 0:
-        rofi_message('Unable to log-in to LastPass - subprocess returned non-zero exit status')
+        if not login_out:
+            rofi_message('Unable to log-in to LastPass - subprocess returned non-zero exit status')
+        else:
+            rofi_message('Unable to log-in to LastPass - ' + login_out.strip())
+        sys.stdout.write('ERROR')
         sys.exit(1)
 
 # Get the list of sites
@@ -77,9 +83,11 @@ try:
     )
 except Exception as e:
     rofi_message('Unable to get site list - ' + str(e))
+    sys.stdout.write('ERROR')
     sys.exit(1)
 if list_ec != 0:
     rofi_message('Unable to get site list - subprocess returned non-zero exit code')
+    sys.stdout.write('ERROR')
     sys.exit(1)
 
 # Parse the site list
@@ -87,10 +95,11 @@ try:
     sites = json.loads(list_out)
 except Exception as e:
     rofi_message('Unable to parse site list - ' + str(e))
+    sys.stdout.write('ERROR')
     sys.exit(1)
 
 # Display the site list
-choices_str = 'CANCEL|' + '|'.join(sorted([s['fullname'].replace('\\', '/') for s in sites if not s['fullname'].endswith('/')]))
+choices_str = 'CANCEL|LOGOUT|' + '|'.join(sorted([s['fullname'].replace('\\', '/') for s in sites if not s['fullname'].endswith('/')]))
 try:
     (rofi_out, rofi_ec) = _run_process(
         cmd = "echo '{choices}' | {rofi} -sep '|' -dmenu -i -no-custom -p 'site :' {args}".format(
@@ -102,11 +111,26 @@ try:
     )
 except Exception as e:
     rofi_message('Unable to display sites - ' + str(e))
+    sys.stdout.write('ERROR')
     sys.exit(1)
 
-# Get the password
+# Get the password, quit, or logout
 rofi_out = rofi_out.strip()
 if rofi_out == 'CANCEL':
+    sys.stdout.write('CANCEL')
+    sys.exit(0)
+if rofi_out == 'LOGOUT':
+    try:
+        (rofi_out, rofi_ec) = _run_process(
+            cmd = "{lpass} logout --force".format(
+                lpass = lpass_path
+            )
+        )
+    except Exception as e:
+        rofi_message('Unable to log-out - ' + str(e))
+        sys.stdout.write('ERROR')
+        sys.exit(1)
+    sys.stdout.write('LOGOUT')
     sys.exit(0)
 for site in sites:
     if site['fullname'].replace('\\', '/') == rofi_out:
