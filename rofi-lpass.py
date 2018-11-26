@@ -110,6 +110,6 @@ if rofi_out == 'CANCEL':
     sys.exit(0)
 for site in sites:
     if site['fullname'].replace('\\', '/') == rofi_out:
-        print(site['password'])
+        sys.stdout.write(site['password'])
         sys.exit(0)
 sys.exit(0)
