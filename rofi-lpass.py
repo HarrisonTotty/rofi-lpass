@@ -9,7 +9,7 @@ import sys
 # ----- Configuration -----
 lpass_path = '/usr/bin/lpass'
 lpass_user = 'harrisongtotty@gmail.com'
-rofi_args  = "-font 'curie 12'"
+rofi_args  = ''
 rofi_path  = '/usr/bin/rofi'
 # -------------------------
 
