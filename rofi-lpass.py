@@ -102,7 +102,7 @@ except Exception as e:
 choices_str = 'CANCEL|LOGOUT|' + '|'.join(sorted([s['fullname'].replace('\\', '/') for s in sites if not s['fullname'].endswith('/')]))
 try:
     (rofi_out, rofi_ec) = _run_process(
-        cmd = "echo '{choices}' | {rofi} -sep '|' -dmenu -i -no-custom -p 'site :' {args}".format(
+        cmd = "echo '{choices}' | {rofi} -sep '|' -dmenu -i -no-custom -p 'password :' {args}".format(
             choices = choices_str,
             rofi = rofi_path,
             args = rofi_args
